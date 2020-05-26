@@ -1,0 +1,74 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- master
+
+pool:
+  vmImage: 'windows-latest'
+
+stages:
+- stage: BuildEFCoreMigrations
+  displayName: Build and publish EF Core Migrations
+  jobs:
+  - job: BuildEFCoreMigrationProject
+    displayName: Build and Publish EF Core Migration Project
+    steps:
+      - task: UseDotNet@2
+        displayName: Specify dotnet version to use
+        inputs:
+          version: '3.1.200'
+      - task: DotNetCoreCLI@2
+        displayName: Install dotnet-ef tools
+        inputs:
+          command: 'custom'
+          custom: 'tool'
+          arguments: 'install --global dotnet-ef'
+      - task: DotNetCoreCLI@2
+        displayName: Check dotnet-ef version to ensure installed successfully
+        inputs:
+          command: 'custom'
+          custom: 'ef'
+          arguments: '--version'
+      - task: DotNetCoreCLI@2
+        displayName: Produce SQL Script from EF Core Migrations
+        inputs:
+          command: 'custom'
+          custom: 'ef'
+          arguments: 'migrations script -p $(Build.SourcesDirectory)/src/EFCoreSeparateProject.Migrations/EFCoreSeparateProject.Migrations.csproj -o $(Build.ArtifactStagingDirectory)/Migrations/migrations.sql -i'
+      - task: PublishBuildArtifacts@1
+        displayName: Publish EFCore Migration Artifact
+        inputs:
+          PathtoPublish: '$(Build.ArtifactStagingDirectory)/Migrations/migrations.sql'
+          ArtifactName: 'EFCoreMigrations'
+          publishLocation: 'Container'
+        
+- stage: DeployEFCoreMigrations
+  displayName: Deploy EF Core Migrations
+  dependsOn: BuildEFCoreMigrations
+  jobs:
+  - job: DeployEFCoreMigrations
+    displayName: Deploy EF Core Migration Changes
+    steps:
+      - task: DownloadBuildArtifacts@0
+        displayName: Download EFCoreMigrations artifact
+        inputs:
+          buildType: 'current'
+          downloadType: 'single'
+          artifactName: 'EFCoreMigrations'
+          downloadPath: '$(System.ArtifactsDirectory)'
+      - task: SqlAzureDacpacDeployment@1
+        displayName: Run migration script
+        inputs:
+          azureSubscription: 'DatabaseAutomationBlogPost'
+          AuthenticationType: 'connectionString'
+          ConnectionString: '$(ConnectionStrings.SqlConnectionString)'
+          deployType: 'SqlTask'
+          SqlFile: '$(System.ArtifactsDirectory)/EFCoreMigrations/migrations.sql'
+          IpDetectionMethod: 'AutoDetect'
+      
+      
+    
+

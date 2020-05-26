@@ -1,0 +1,49 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30011.22
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DatabaseReleaseAutomation.DbUpDemo", "DatabaseReleaseAutomation.DbUpDemo\DatabaseReleaseAutomation.DbUpDemo.csproj", "{5375EEDA-76E1-4627-8F23-C976C04E46B5}"
+EndProject
+Project("{151D2E53-A2C4-4D7D-83FE-D05416EBD58E}") = "DatabaseReleaseAutomation.Infrastructure", "DatabaseReleaseAutomation.Infrastructure\DatabaseReleaseAutomation.Infrastructure.deployproj", "{15240EEA-F048-4EFC-9D8E-EA6714B4833F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCoreSeparateProject.Core", "EFCoreSeparateProject.Core\EFCoreSeparateProject.Core.csproj", "{CBFCE376-5BFA-4EC4-8D79-559BED9B517E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCoreSeparateProject.Infrastructure", "EFCoreSeparateProject.Infrastructure\EFCoreSeparateProject.Infrastructure.csproj", "{4C5A799F-A47A-44DC-8772-E39C93FC2093}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCoreSeparateProject.Migrations", "EFCoreSeparateProject.Migrations\EFCoreSeparateProject.Migrations.csproj", "{9394A5F0-6366-4B42-B661-FD93D3E80037}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5375EEDA-76E1-4627-8F23-C976C04E46B5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5375EEDA-76E1-4627-8F23-C976C04E46B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5375EEDA-76E1-4627-8F23-C976C04E46B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5375EEDA-76E1-4627-8F23-C976C04E46B5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{15240EEA-F048-4EFC-9D8E-EA6714B4833F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{15240EEA-F048-4EFC-9D8E-EA6714B4833F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{15240EEA-F048-4EFC-9D8E-EA6714B4833F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{15240EEA-F048-4EFC-9D8E-EA6714B4833F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CBFCE376-5BFA-4EC4-8D79-559BED9B517E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CBFCE376-5BFA-4EC4-8D79-559BED9B517E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CBFCE376-5BFA-4EC4-8D79-559BED9B517E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CBFCE376-5BFA-4EC4-8D79-559BED9B517E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4C5A799F-A47A-44DC-8772-E39C93FC2093}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4C5A799F-A47A-44DC-8772-E39C93FC2093}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4C5A799F-A47A-44DC-8772-E39C93FC2093}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4C5A799F-A47A-44DC-8772-E39C93FC2093}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9394A5F0-6366-4B42-B661-FD93D3E80037}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9394A5F0-6366-4B42-B661-FD93D3E80037}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9394A5F0-6366-4B42-B661-FD93D3E80037}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9394A5F0-6366-4B42-B661-FD93D3E80037}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E9602597-E417-4A8F-90B6-27E178AC08D3}
+	EndGlobalSection
+EndGlobal

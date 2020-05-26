@@ -1,0 +1,102 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- master
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+stages:
+- stage: BuildEFCoreMigrations
+  displayName: Build and publish EF Core Migrations
+  jobs:
+  - job: BuildEFCoreMigrationProject
+    displayName: Build and Publish EF Core Migration Project
+    steps:
+      - task: DotNetCoreCLI@2
+        inputs:
+          command: 'publish'
+          publishWebProjects: false
+          projects: '**/EFCoreSeparateProject.Migrations.csproj'
+          arguments: '--configuration Release --output $(Build.ArtifactStagingDirectory)'
+      #- task: ArchiveFiles@2
+      #  inputs:
+      #    rootFolderOrFile: '$(Build.SourcesDirectory)/src'
+      #    includeRootFolder: true
+      #    archiveType: 'zip'
+      #    archiveFile: '$(Build.ArtifactStagingDirectory)/Test.zip'
+      #    replaceExistingArchive: true
+      - task: PublishBuildArtifacts@1
+        displayName: Publish EFCore Migration Artifact
+        inputs:
+          pathtoPublish: '$(Build.ArtifactStagingDirectory)' 
+          ArtifactName: 'EFCoreMigrations'
+          publishLocation: 'Container'
+- stage: DeployEFCoreMigrations
+  displayName: Deploy EF Core Migrations
+  dependsOn: BuildEFCoreMigrations
+  jobs:
+  - job: DeployEFCoreMigrations
+    displayName: Deploy EF Core Migration Changes
+    steps:
+      - task: DownloadBuildArtifacts@0
+        displayName: Download EFCoreMigrations artifact
+        inputs:
+          buildType: 'current'
+          downloadType: 'single'
+          artifactName: 'EFCoreMigrations'
+          downloadPath: '$(System.ArtifactsDirectory)'
+      - task: ExtractFiles@1
+        displayName: Extract Zip
+        inputs:
+          archiveFilePatterns: '$(System.ArtifactsDirectory)/**/*.zip'
+          destinationFolder: '$(System.ArtifactsDirectory)/EFCoreMigrations'
+          cleanDestinationFolder: false
+      #- task: ExtractFiles@1
+      #  displayName: Extract Zip
+      #  inputs:
+      #    archiveFilePatterns: '$(System.ArtifactsDirectory)/**/Test.zip'
+      #    destinationFolder: '$(System.ArtifactsDirectory)/TestEFCoreMigrations'
+      #    cleanDestinationFolder: false
+      - task: FileTransform@2
+        displayName: Transform variables in appsettings.json
+        inputs:
+          folderPath: '$(System.ArtifactsDirectory)/EFCoreMigrations'
+          xmlTransformationRules: 
+          jsonTargetFiles: 'appsettings.json'
+      - task: UseDotNet@2
+        inputs:
+          version: '3.1.200'
+      - task: DotNetCoreCLI@2
+        displayName: Install dotnet-ef
+        inputs:
+          command: 'custom'
+          custom: 'tool'
+          arguments: 'install --global dotnet-ef'
+      - task: DotNetCoreCLI@2
+        displayName: Check dotnet-ef version
+        inputs:
+          command: 'custom'
+          custom: 'ef'
+          arguments: '--version'
+      #- task: DotNetCoreCLI@2
+      #  displayName: Run EF Migrations
+      #  inputs:
+      #    command: 'custom'
+      #    custom: 'ef'
+      #    arguments: 'database update --verbose'
+      #    workingDirectory: '$(System.ArtifactsDirectory)/TestEFCoreMigrations/src/EFCoreSeparateProject.Migrations'
+      - task: DotNetCoreCLI@2
+        displayName: Run EF Migrations
+        inputs:
+          command: 'custom'
+          custom: 'exec'
+          arguments: '--depsfile EFCoreSeparateProject.Migrations.deps.json --additionalprobingpath /home/vsts/.nuget/packages --runtimeconfig EFCoreSeparateProject.Migrations.runtimeconfig.json /home/vsts/.dotnet/tools/.store/dotnet-ef/3.1.4/dotnet-ef/3.1.4/tools/netcoreapp3.1/any/tools/netcoreapp2.0/any/ef.dll database update --assembly EFCoreSeparateProject.Migrations.dll --startup-assembly EFCoreSeparateProject.Migrations.dll --language C# --verbose --root-namespace EFCoreSeparateProject.Migrations'
+          workingDirectory: '$(System.ArtifactsDirectory)/EFCoreMigrations'
+      
+      
+    
+

@@ -1,0 +1,99 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- master
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+stages:
+- stage: BuildDbUp
+  displayName: Build and publish DbUp
+  jobs:
+  - job: BuildDbUpProject
+    displayName: Build and Publish DbUp Project
+    steps:
+      - task: DotNetCoreCLI@2
+        displayName: Publish DbUp Project
+        inputs:
+          command: 'publish'
+          publishWebProjects: false
+          projects: '**/*DbUpDemo.csproj'
+          arguments: '--configuration Release --output $(Build.ArtifactStagingDirectory)'
+      - task: PublishBuildArtifacts@1
+        displayName: Publish DbUp Artifact
+        inputs:
+          pathtoPublish: '$(Build.ArtifactStagingDirectory)' 
+          artifactName: 'DbUpDemo'
+  - job: PublishARM
+    displayName: Publish ARM Template
+    steps:
+      - task: PublishBuildArtifacts@1
+        displayName: Publish DbUp Artifact
+        inputs:
+          pathtoPublish: 'src/DatabaseReleaseAutomation.Infrastructure' 
+          artifactName: 'DatabaseReleaseAutomation.Infrastructure'
+- stage: DeployARMAndDbUp
+  displayName: Deploy ARM and DbUp
+  dependsOn: BuildDbUp
+  jobs:
+  - job: DeployInfrastructure
+    displayName: Deploy Infrastructure
+    steps:
+      - task: DownloadBuildArtifacts@0
+        displayName: Download Infrastructure Artifact
+        inputs:
+          buildType: 'current'
+          downloadType: 'single'
+          artifactName: 'DatabaseReleaseAutomation.Infrastructure'
+          downloadPath: '$(System.ArtifactsDirectory)'
+      #Ensure you add the required variables below before running
+      - task: AzureResourceManagerTemplateDeployment@3
+        displayName: Execute ARM template to create infrastructure
+        inputs:
+          deploymentScope: 'Resource Group'
+          azureResourceManagerConnection: 'DatabaseAutomationBlogPost'
+          subscriptionId: '38c15d6f-362a-4c30-9cd2-f1b3d8e1c38e'
+          action: 'Create Or Update Resource Group'
+          resourceGroupName: 'rg-databaseautomation'
+          location: 'UK South'
+          templateLocation: 'Linked artifact'
+          csmFile: '$(System.ArtifactsDirectory)/DatabaseReleaseAutomation.Infrastructure/SQLDatabase.json'
+          overrideParameters: '-administratorLogin "$(AdministratorLogin)" -administratorLoginPassword "$(AdministratorLoginPassword)" -sqlserverName $(SqlServerName) -databaseName databasereleaseautomation'
+          deploymentMode: 'Incremental'
+  - job: DeployDbUp
+    displayName: Deploy DbUp Changes
+    dependsOn: DeployInfrastructure
+    steps:
+      - task: DownloadBuildArtifacts@0
+        displayName: Download DbUpDemo artifact
+        inputs:
+          buildType: 'current'
+          downloadType: 'single'
+          artifactName: 'DbUpDemo'
+          downloadPath: '$(System.ArtifactsDirectory)/DbUpDemoExtract'
+      - task: ExtractFiles@1
+        displayName: Extract Zip
+        inputs:
+          archiveFilePatterns: '$(System.ArtifactsDirectory)/**/*.zip'
+          destinationFolder: '$(System.ArtifactsDirectory)/DbUpDemoExtract'
+          cleanDestinationFolder: false
+      - task: FileTransform@2
+        displayName: Transform variables in appsettings.json
+        inputs:
+          folderPath: '$(System.ArtifactsDirectory)/DbUpDemoExtract'
+          xmlTransformationRules: 
+          jsonTargetFiles: 'appsettings.json'
+      - task: DotNetCoreCLI@2
+        displayName: Run DbUp
+        inputs:
+          command: 'custom'
+          custom: 'DatabaseReleaseAutomation.DbUpDemo.dll'
+          workingDirectory: '$(System.ArtifactsDirectory)/DbUpDemoExtract'
+      
+      
+    
+
