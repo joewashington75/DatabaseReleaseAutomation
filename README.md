@@ -1,20 +1,9 @@
 # Introduction 
-TODO: Give a short introduction of your project. Let this section explain the objectives or the motivation behind this project. 
+This repository shows how to update a SQL database using both DbUp and EF Core Migrations. This [blog post](https://joeblogs.technology/2020/05/techniques-for-automating-sql-database-releases-using-azure-devops/) helps explain step-by-step how the different methods can be implemented, and discusses how this can be baked into the CI/CD using Azure DevOps. 
 
 # Getting Started
-TODO: Guide users through getting your code up and running on their own system. In this section you can talk about:
-1.	Installation process
-2.	Software dependencies
-3.	Latest releases
-4.	API references
+A docker-compose file has been added to run SQL Server locally. This will allow you to run the DbUp migrations and the EF Core migrations locally. If you already have a local instance of SQL Server, update the connection strings in the appsettings.json file before running the projects.
 
-# Build and Test
-TODO: Describe and show how to build your code and run the tests. 
+An ARM project (DatabaseReleaseAutomation.Infrastructure) and Azure DevOps pipelines (/cicd/azure-pipelines...yml) have been included to help deploy into Azure.
 
-# Contribute
-TODO: Explain how other users and developers can contribute to make your code better. 
-
-If you want to learn more about creating good readme files then refer the following [guidelines](https://docs.microsoft.com/en-us/azure/devops/repos/git/create-a-readme?view=azure-devops). You can also seek inspiration from the below readme files:
-- [ASP.NET Core](https://github.com/aspnet/Home)
-- [Visual Studio Code](https://github.com/Microsoft/vscode)
-- [Chakra Core](https://github.com/Microsoft/ChakraCore)
+More info [here](https://joeblogs.technology/2020/05/techniques-for-automating-sql-database-releases-using-azure-devops/)
