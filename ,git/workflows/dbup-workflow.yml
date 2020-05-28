@@ -1,0 +1,76 @@
+name: deploy-db-up
+on:
+  push:
+    branches:
+      - master
+    pull_request:
+      branches:
+        -master
+
+jobs:
+  build_dbup_project:
+    name: Build and package code
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: dotnet core publish DbUp project
+        uses: actions/setup-dotnet@v1
+      - run: dotnet publish src/DatabaseReleaseAutomation.DbUpDemo/DatabaseReleaseAutomation.DbUpDemo.csproj --configuration Release --output ./DbUpDemo
+
+      - name: Publish artifact to be used in deployment
+        uses: actions/upload-artifact@v1
+        with:
+            name: DbUpDemo
+            path: ./DbUpDemo
+
+  publish_arm_project:
+    name: Publish ARM project
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: Upload ARM project
+        uses: actions/upload-artifact@v1
+        with:
+          name: 'DatabaseReleaseAutomation.Infrastructure'
+          path: src/DatabaseReleaseAutomation.Infrastructure 
+
+  deploy_arm:
+    needs: publish_arm_project
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: Download ARM project published artifact
+        uses: actions/download-artifact@v1
+        with:
+          name: DatabaseReleaseAutomation.Infrastructure
+
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy ARM Template
+        uses: azure/CLI@v1
+        with:
+          inlineScript: |
+            az deployment group create --resource-group rg-databaseautomation --template-file ./DatabaseReleaseAutomation.Infrastructure/SQLDatabase.json --parameters administratorLogin=${{ secrets.ADMINISTRATOR_LOGIN }} administratorLoginPassword=${{ secrets.ADMINISTRATOR_LOGIN_PASSWORD }} sqlserverName=${{ secrets.SQL_SERVER_NAME }} databaseName=databasereleaseautomation
+
+  deploy_dbup:
+    needs: [build_dbup_project, deploy_arm]
+    runs-on: windows-latest
+    steps:
+      - name: Download DbUp project published artifact
+        uses: actions/download-artifact@v1
+        with:
+          name: DbUpDemo
+
+      - name: App Settings Variable Substitution
+        uses: microsoft/variable-substitution@v1
+        with:
+          files: './DbUpDemo/appsettings.json'
+        env:
+          ConnectionStrings.DbUpSqlConnectionString: ${{ secrets.DBUP_CONNECTIONSTRING }}
+
+      - name: dotnet run DbUp Project
+        uses: actions/setup-dotnet@v1
+      - run: dotnet ./DbUpDemo/DatabaseReleaseAutomation.DbUpDemo.dll
